@@ -1,64 +1,94 @@
-import json
-from engine import JsonRuleEngine, Rule
+"""
+CLI demonstration harness and server bootstrap for the Ige JSON Rule Engine.
+"""
 
-sample_rules_json = [
-    {
-        "id": "RULE_FRAUD_HIGH_VALUE_FOREIGN",
-        "description": "Flag transaction over $5,000 originating outside US/UK",
-        "match_all": True,
-        "conditions": [
-            {"field": "transaction.amount", "operator": "gte", "value": 5000},
-            {"field": "transaction.country", "operator": "in", "value": ["NG", "RO", "RU", "KY"]}
-        ],
-        "action": "TRIGGER_MANUAL_KYC_REVIEW"
-    },
-    {
-        "id": "RULE_VIP_TIER_FEE_WAIVER",
-        "description": "Waive platform fees for enterprise customers",
-        "match_all": False,
-        "conditions": [
-            {"field": "customer.tier", "operator": "eq", "value": "ENTERPRISE"},
-            {"field": "customer.monthly_spend", "operator": "gt", "value": 50000}
-        ],
-        "action": "APPLY_ZERO_FEE_OVERRIDE"
+import sys
+import argparse
+from engine import JsonRuleEngine, Rule, Condition, Operator
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+
+def run_cli_demo():
+    print("=" * 65)
+    print("[*] Ige JSON Rule Engine -- Declarative Policy Evaluation")
+    print("=" * 65)
+
+    rules = [
+        Rule(
+            id="RULE_001_HIGH_RISK_AML",
+            description="Flag high-value international transfers from high-risk users",
+            priority=1,
+            match_all=True,
+            conditions=[
+                Condition(field="transaction.amount", operator=Operator.GREATER_THAN, value=5000),
+                Condition(field="user.risk_level", operator=Operator.IN, value=["HIGH", "CRITICAL"]),
+                Condition(field="recipient.country", operator=Operator.NOT_EQUALS, value="US"),
+            ],
+            action="HOLD_AND_ALERT_COMPLIANCE"
+        ),
+        Rule(
+            id="RULE_002_AUTO_VIP_UPGRADE",
+            description="Upgrade institutional users with 30-day volume >= 500k",
+            priority=2,
+            match_all=True,
+            conditions=[
+                Condition(field="account.thirty_day_volume", operator=Operator.GREATER_THAN_OR_EQUAL, value=500000),
+                Condition(field="account.kyc_tier", operator=Operator.EQUALS, value="TIER_3"),
+            ],
+            action="PROMOTE_TO_PRIME_BROKERAGE"
+        )
+    ]
+
+    engine = JsonRuleEngine(rules=rules)
+
+    payload_a = {
+        "transaction": {"amount": 12500, "currency": "EUR"},
+        "user": {"risk_level": "HIGH", "name": "Global Traders Ltd"},
+        "recipient": {"country": "DE"}
     }
-]
+
+    print("\n[1] Evaluating Payload A (High-Risk Wire):")
+    res_a = engine.evaluate(payload_a)
+    print(f"   Execution Time: {res_a['evaluation_time_us']} us")
+    print(f"   Rules Triggered: {res_a['rules_triggered_count']} / {res_a['rules_evaluated_count']}")
+    for r in res_a["results"]:
+        status = "[TRIGGERED]" if r["matched"] else "[PASSED OVER]"
+        print(f"    - {status} {r['rule_id']} -> Action: {r['action']}")
+        print(f"      Explanation: {r['explanation']}")
+
+    payload_b = {
+        "account": {"thirty_day_volume": 850000, "kyc_tier": "TIER_3"},
+        "transaction": {"amount": 500}
+    }
+
+    print("\n[2] Evaluating Payload B (Institutional Volume Upgrade):")
+    res_b = engine.evaluate(payload_b)
+    print(f"   Execution Time: {res_b['evaluation_time_us']} us")
+    print(f"   Rules Triggered: {res_b['rules_triggered_count']} / {res_b['rules_evaluated_count']}")
+    for r in res_b["results"]:
+        status = "[TRIGGERED]" if r["matched"] else "[PASSED OVER]"
+        print(f"    - {status} {r['rule_id']} -> Action: {r['action']}")
+        print(f"      Explanation: {r['explanation']}")
+
+    print("\n[+] JSON Rule Engine demonstrated sub-millisecond evaluation with full audit trails.")
+    print("    To launch the interactive visualizer, run: py main.py --serve")
+
 
 def main():
-    print("=" * 60)
-    print("📋 Ige Lightweight JSON Rule Evaluation Engine")
-    print("=" * 60)
+    parser = argparse.ArgumentParser(description="Ige JSON Rule Engine")
+    parser.add_argument("--serve", "-s", action="store_true", help="Launch interactive web server on port 8093")
+    parser.add_argument("--port", "-p", type=int, default=8093, help="Port to listen on")
 
-    rules = [Rule(**r) for r in sample_rules_json]
-    engine = JsonRuleEngine(rules)
+    args = parser.parse_args()
 
-    sample_transaction = {
-        "transaction": {
-            "id": "tx_99182",
-            "amount": 7500.0,
-            "country": "NG",
-            "currency": "USD"
-        },
-        "customer": {
-            "id": "cust_123",
-            "tier": "STANDARD",
-            "monthly_spend": 1200
-        }
-    }
+    if args.serve:
+        from server import start_server
+        start_server(args.port)
+    else:
+        run_cli_demo()
 
-    print("\n[1] Evaluating Incoming Payload against Declarative Rules:")
-    print(json.dumps(sample_transaction, indent=2))
-
-    evaluations = engine.evaluate(sample_transaction)
-
-    print("\n[2] Evaluation Results:")
-    for ev in evaluations:
-        status = "MATCHED (ACTION TRIGGERED)" if ev.matched else "NOT MATCHED"
-        print(f" Rule:   {ev.rule_id}")
-        print(f" Status: {status}")
-        if ev.matched:
-            print(f" Action: {ev.action}")
-        print(f" Reason: {ev.reason}\n")
 
 if __name__ == "__main__":
     main()

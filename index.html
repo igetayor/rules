@@ -3,111 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ige Lightweight JSON Rule Engine — Interactive Studio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #090d16;
-      --card: #111a2c;
-      --border: #1e2c48;
-      --accent: #ec4899;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg); color: var(--text); padding: 2.5rem 1rem;
-      display: flex; flex-direction: column; align-items: center; min-height: 100vh;
-    }
-    .container { max-width: 960px; width: 100%; }
-    .badge {
-      display: inline-block; background: rgba(236, 72, 153, 0.15);
-      border: 1px solid rgba(236, 72, 153, 0.35); color: var(--accent);
-      padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600;
-      text-transform: uppercase; margin-bottom: 1rem;
-    }
-    h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; }
-    p.sub { color: var(--muted); font-size: 1.05rem; margin-bottom: 2rem; line-height: 1.6; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-    @media(max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
-    textarea {
-      width: 100%; height: 180px; background: #060a12; border: 1px solid #1a2740;
-      border-radius: 8px; color: #fff; padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; margin-bottom: 1rem;
-    }
-    button {
-      background: linear-gradient(135deg, #db2777, #ec4899); color: #fff;
-      font-weight: 700; padding: 0.85rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; width: 100%;
-    }
-    .result-box {
-      background: #060a12; border: 1px solid #1a2740; border-radius: 8px;
-      padding: 1rem; height: 180px; overflow-y: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
-    }
-  </style>
+  <title>Ige JSON Rule Engine — Policy & Compliance Evaluation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/styles.css">
 </head>
 <body>
-  <div class="container">
-    <div class="badge">Python Pydantic Rule Engine</div>
-    <h1>Lightweight JSON Rule Evaluation Engine</h1>
-    <p class="sub">In-browser evaluation studio demonstrating declarative JSON business rule definitions against nested event payloads with threshold, regex, and set inclusion logic.</p>
-
-    <div class="grid">
-      <div class="card">
-        <h3>Incoming Payload (JSON)</h3>
-        <textarea id="payloadJson">{
-  "transaction": {
-    "amount": 7500,
-    "country": "NG",
-    "currency": "USD"
-  },
-  "customer": {
-    "tier": "STANDARD",
-    "monthly_spend": 1200
-  }
-}</textarea>
-        <button onclick="evaluateRules()">Evaluate Declarative Rules</button>
-      </div>
-
-      <div class="card">
-        <h3>Evaluation Results</h3>
-        <div id="evalResults" class="result-box">
-          <div style="color: var(--muted);">Click 'Evaluate Declarative Rules' to test payload...</div>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-brand">
+        <div class="badge-tag">
+          Declarative Policy Engine
         </div>
+        <h1 class="dashboard-title">JSON Rule Engine</h1>
+        <p class="dashboard-sub">
+          High-performance, declarative business rule and fraud scoring engine featuring dot-notation field traversal, composable boolean logic, and sub-millisecond execution audit trails.
+        </p>
       </div>
-    </div>
+
+      <div class="header-status-pill">
+        <span style="color: var(--text-dim);">PORT:</span>
+        <span style="color: #818cf8; font-weight: 700;">8093</span>
+        <span style="margin: 0 0.25rem; color: var(--border-subtle);">|</span>
+        <span style="color: #34d399; font-weight: 600;">ACTIVE</span>
+      </div>
+    </header>
+
+    <!-- Main Workbench Layout -->
+    <main class="workbench-grid">
+      <!-- Left Column: Rule Catalog & Payload Editor -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>Active Business Rules</h3>
+            <span style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-dim);">Declarative Schema</span>
+          </div>
+          <div id="ruleCatalogList" class="rule-list">
+            <!-- Populated by RuleCatalog.js -->
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>Test Payload (JSON)</h3>
+            <div class="preset-selector-row">
+              <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Presets:</label>
+              <select id="presetSelect" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); color: #fff; padding: 0.35rem 0.65rem; border-radius: 4px; font-size: 0.8rem; outline: none;">
+                <option value="fraud">Flagged AML Wire ($14.5k EUR)</option>
+                <option value="vip">Approved VIP Settlement ($75k USD)</option>
+                <option value="disposable">Disposable Domain Check</option>
+              </select>
+            </div>
+          </div>
+          <textarea id="payloadInput" class="json-editor" spellcheck="false"></textarea>
+          <button id="btnEvaluate" class="btn btn-primary">
+            ⚡ Evaluate Payload Against Rules
+          </button>
+        </section>
+      </div>
+
+      <!-- Right Column: Evaluation Audit Results -->
+      <section class="panel-card">
+        <div class="panel-header">
+          <h3>Evaluation Audit Trail</h3>
+          <div id="evalMetricsHeader" style="font-family: var(--font-mono); font-size: 0.85rem;">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div id="evalResultsStream" class="eval-results-container">
+          <!-- Populated by EvaluationResultView.js -->
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
+          💡 <strong>Auditable Explainability:</strong> In regulated fintech environments, rules cannot be black boxes. This engine exposes the exact path, operator, expected threshold, and resolved actual value for every condition.
+        </div>
+      </section>
+    </main>
   </div>
 
-  <script>
-    function evaluateRules() {
-      try {
-        const payload = JSON.parse(document.getElementById('payloadJson').value);
-        const container = document.getElementById('evalResults');
-        container.innerHTML = '';
-
-        // Rule 1: High Value Foreign Fraud
-        const r1Matched = payload.transaction && payload.transaction.amount >= 5000 && ["NG", "RO", "RU", "KY"].includes(payload.transaction.country);
-        container.innerHTML += `
-          <div style="margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #1a2740;">
-            <div style="font-weight: 600; color: ${r1Matched ? '#ec4899' : '#94a3b8'};">Rule: RULE_FRAUD_HIGH_VALUE_FOREIGN</div>
-            <div>Status: ${r1Matched ? '<span style="color: #34d399;">MATCHED</span>' : 'NOT MATCHED'}</div>
-            ${r1Matched ? '<div style="color: #f472b6;">Action: TRIGGER_MANUAL_KYC_REVIEW</div>' : ''}
-          </div>
-        `;
-
-        // Rule 2: VIP Fee Waiver
-        const r2Matched = payload.customer && (payload.customer.tier === "ENTERPRISE" || payload.customer.monthly_spend > 50000);
-        container.innerHTML += `
-          <div>
-            <div style="font-weight: 600; color: ${r2Matched ? '#ec4899' : '#94a3b8'};">Rule: RULE_VIP_TIER_FEE_WAIVER</div>
-            <div>Status: ${r2Matched ? '<span style="color: #34d399;">MATCHED</span>' : 'NOT MATCHED'}</div>
-            ${r2Matched ? '<div style="color: #f472b6;">Action: APPLY_ZERO_FEE_OVERRIDE</div>' : ''}
-          </div>
-        `;
-      } catch (err) {
-        alert("Invalid JSON format in payload!");
-      }
-    }
-  </script>
+  <script type="module" src="static/js/app.js"></script>
 </body>
 </html>

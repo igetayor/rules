@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ige JSON Rule Engine — Policy & Compliance Evaluation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-brand">
+        <div class="badge-tag">
+          Declarative Policy Engine
+        </div>
+        <h1 class="dashboard-title">JSON Rule Engine</h1>
+        <p class="dashboard-sub">
+          High-performance, declarative business rule and fraud scoring engine featuring dot-notation field traversal, composable boolean logic, and sub-millisecond execution audit trails.
+        </p>
+      </div>
+
+      <div class="header-status-pill">
+        <span style="color: var(--text-dim);">PORT:</span>
+        <span style="color: #818cf8; font-weight: 700;">8093</span>
+        <span style="margin: 0 0.25rem; color: var(--border-subtle);">|</span>
+        <span style="color: #34d399; font-weight: 600;">ACTIVE</span>
+      </div>
+    </header>
+
+    <!-- Main Workbench Layout -->
+    <main class="workbench-grid">
+      <!-- Left Column: Rule Catalog & Payload Editor -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>Active Business Rules</h3>
+            <span style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-dim);">Declarative Schema</span>
+          </div>
+          <div id="ruleCatalogList" class="rule-list">
+            <!-- Populated by RuleCatalog.js -->
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <div class="panel-header">
+            <h3>Test Payload (JSON)</h3>
+            <div class="preset-selector-row">
+              <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Presets:</label>
+              <select id="presetSelect" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); color: #fff; padding: 0.35rem 0.65rem; border-radius: 4px; font-size: 0.8rem; outline: none;">
+                <option value="fraud">Flagged AML Wire ($14.5k EUR)</option>
+                <option value="vip">Approved VIP Settlement ($75k USD)</option>
+                <option value="disposable">Disposable Domain Check</option>
+              </select>
+            </div>
+          </div>
+          <textarea id="payloadInput" class="json-editor" spellcheck="false"></textarea>
+          <button id="btnEvaluate" class="btn btn-primary">
+            ⚡ Evaluate Payload Against Rules
+          </button>
+        </section>
+      </div>
+
+      <!-- Right Column: Evaluation Audit Results -->
+      <section class="panel-card">
+        <div class="panel-header">
+          <h3>Evaluation Audit Trail</h3>
+          <div id="evalMetricsHeader" style="font-family: var(--font-mono); font-size: 0.85rem;">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div id="evalResultsStream" class="eval-results-container">
+          <!-- Populated by EvaluationResultView.js -->
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
+          💡 <strong>Auditable Explainability:</strong> In regulated fintech environments, rules cannot be black boxes. This engine exposes the exact path, operator, expected threshold, and resolved actual value for every condition.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
