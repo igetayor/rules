@@ -7,18 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
   <style>
     :root {
-      --bg-primary: #07090e;
-      --bg-surface: #0f1422;
-      --bg-surface-elevated: #161e30;
-      --border-subtle: #1e2a42;
-      --border-focus: #818cf8;
-      --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.25);
+      --bg-primary: #080a10;
+      --bg-surface: #0e121d;
+      --bg-surface-elevated: #141a29;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: #3b82f6;
+      --accent: #3b82f6;
       --success: #10b981;
-      --danger: #ef4444;
+      --danger: #f43f5e;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
@@ -32,27 +30,25 @@
       background: var(--bg-primary);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 2.5rem 1.5rem;
+      padding: 2rem 1.5rem;
       display: flex;
       justify-content: center;
-      background-image: 
-        radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 40%);
+      line-height: 1.5;
     }
 
     .dashboard-container {
-      max-width: 1240px;
+      max-width: 1200px;
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 1.75rem;
+      gap: 1.5rem;
     }
 
     .dashboard-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      padding-bottom: 1.5rem;
+      align-items: center;
+      padding-bottom: 1.25rem;
       border-bottom: 1px solid var(--border-subtle);
       flex-wrap: wrap;
       gap: 1rem;
@@ -61,36 +57,38 @@
     .header-brand {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.35rem;
     }
 
-    .badge-tag {
-      display: inline-flex;
+    .header-top-row {
+      display: flex;
       align-items: center;
-      gap: 0.5rem;
-      background: var(--accent-glow);
-      border: 1px solid rgba(99, 102, 241, 0.4);
-      color: #a5b4fc;
-      padding: 0.35rem 0.8rem;
+      gap: 0.75rem;
+    }
+
+    .version-pill {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
       border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      width: fit-content;
+      color: var(--text-muted);
     }
 
     h1.dashboard-title {
-      font-size: 2rem;
+      font-size: 1.35rem;
       font-weight: 700;
-      letter-spacing: -0.025em;
+      letter-spacing: -0.02em;
+      color: #fff;
     }
 
     p.dashboard-sub {
       color: var(--text-muted);
-      font-size: 0.95rem;
+      font-size: 0.875rem;
       line-height: 1.5;
-      max-width: 700px;
+      max-width: 720px;
     }
 
     .header-status-pill {
@@ -327,20 +325,18 @@
     <!-- Header -->
     <header class="dashboard-header">
       <div class="header-brand">
-        <div class="badge-tag">
-          Declarative Policy Engine
+        <div class="header-top-row">
+          <h1 class="dashboard-title">JSON Rule Engine & Policy Evaluator</h1>
+          <span class="version-pill">PORT 8093</span>
         </div>
-        <h1 class="dashboard-title">JSON Rule Engine</h1>
         <p class="dashboard-sub">
-          High-performance, declarative business rule and fraud scoring engine featuring dot-notation field traversal, composable boolean logic, and sub-millisecond execution audit trails.
+          Declarative rule and scoring engine with dot-notation path traversal, composable logic operators, and live execution tracing.
         </p>
       </div>
 
       <div class="header-status-pill">
-        <span style="color: var(--text-dim);">EVAL ENGINE:</span>
-        <span style="color: #818cf8; font-weight: 700;">DETERMINISTIC</span>
-        <span style="margin: 0 0.25rem; color: var(--border-subtle);">|</span>
-        <span style="color: #34d399; font-weight: 600;">ACTIVE</span>
+        <span class="status-indicator success" style="width:7px; height:7px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+        <span style="font-size:0.75rem; font-family:var(--font-mono); font-weight:600;">EVAL ENGINE ONLINE</span>
       </div>
     </header>
 

@@ -1,22 +1,29 @@
 """
-Zero-dependency HTTP server for the JSON Rule Engine.
-Serves static frontend assets and exposes REST endpoints for rule catalog inspection and payload evaluation.
+HTTP server bootstrap for the JSON Rule Engine.
+
+Wires together: RuleService (business logic) → RuleController (HTTP adapter)
+→ HTTP request handler → HTTPServer. Frontend assets are served from frontend/.
 """
 
 import os
-import sys
 import json
+import sys
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse
-from engine import JsonRuleEngine, Rule, Condition, Operator
+
+from backend.core.engine import Rule, Condition, Operator
+from backend.api.services.rule_service import RuleService
+from backend.api.controllers.rule_controller import RuleController
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 PORT = 8093
-STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "frontend")
 
-# Sample Default Rules
+# ------------------------------------------------------------------ #
+#  Default rules — seeded at startup                                  #
+# ------------------------------------------------------------------ #
 DEFAULT_RULES = [
     Rule(
         id="RULE_FRAUD_HIGH_RISK",
@@ -56,12 +63,13 @@ DEFAULT_RULES = [
     )
 ]
 
-engine = JsonRuleEngine(rules=DEFAULT_RULES)
+_service = RuleService(initial_rules=DEFAULT_RULES)
+_controller = RuleController(service=_service)
 
 
 class RuleEngineHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=STATIC_DIR, **kwargs)
+        super().__init__(*args, directory=FRONTEND_DIR, **kwargs)
 
     def _set_headers(self, status=200, content_type="application/json"):
         self.send_response(status)
@@ -71,68 +79,55 @@ class RuleEngineHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
 
+    def _send_json(self, status: int, data):
+        self._set_headers(status)
+        self.wfile.write(json.dumps(data).encode("utf-8"))
+
+    def _read_json_body(self) -> dict | None:
+        length = int(self.headers.get("Content-Length", 0))
+        raw = self.rfile.read(length).decode("utf-8") if length > 0 else "{}"
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            return None
+
     def do_OPTIONS(self):
         self._set_headers(200)
 
     def do_GET(self):
-        parsed = urlparse(self.path)
-        if parsed.path == "/api/rules":
-            rules_data = [r.model_dump() for r in engine.rules]
-            self._set_headers(200)
-            self.wfile.write(json.dumps(rules_data).encode("utf-8"))
-        elif parsed.path == "/" or parsed.path == "/index.html":
-            root_index = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
-            target = os.path.join(STATIC_DIR, "index.html") if os.path.exists(os.path.join(STATIC_DIR, "index.html")) else root_index
-            if os.path.exists(target):
-                self._set_headers(200, "text/html")
-                with open(target, "rb") as f:
-                    self.wfile.write(f.read())
-            else:
-                super().do_GET()
+        path = urlparse(self.path).path
+        if path == "/api/rules":
+            status, data = _controller.list_rules()
+            self._send_json(status, data)
         else:
             super().do_GET()
 
     def do_POST(self):
-        parsed = urlparse(self.path)
-        length = int(self.headers.get("Content-Length", 0))
-        body = self.rfile.read(length).decode("utf-8") if length > 0 else "{}"
-        try:
-            payload = json.loads(body)
-        except json.JSONDecodeError:
-            self._set_headers(400)
-            self.wfile.write(json.dumps({"error": "Malformed JSON payload"}).encode("utf-8"))
+        path = urlparse(self.path).path
+        body = self._read_json_body()
+        if body is None:
+            self._send_json(400, {"error": "Malformed JSON payload"})
             return
 
-        if parsed.path == "/api/evaluate":
-            target_data = payload.get("data", payload)
-            result = engine.evaluate(target_data)
-            self._set_headers(200)
-            self.wfile.write(json.dumps(result).encode("utf-8"))
-
-        elif parsed.path == "/api/rules":
-            try:
-                new_rule = Rule(**payload)
-                engine.add_rule(new_rule)
-                self._set_headers(201)
-                self.wfile.write(json.dumps({"success": True, "rule": new_rule.model_dump()}).encode("utf-8"))
-            except Exception as e:
-                self._set_headers(400)
-                self.wfile.write(json.dumps({"error": f"Invalid rule schema: {str(e)}"}).encode("utf-8"))
+        if path == "/api/evaluate":
+            status, data = _controller.evaluate(body)
+            self._send_json(status, data)
+        elif path == "/api/rules":
+            status, data = _controller.create_rule(body)
+            self._send_json(status, data)
         else:
-            self._set_headers(404)
-            self.wfile.write(json.dumps({"error": "Endpoint not found"}).encode("utf-8"))
+            self._send_json(404, {"error": "Endpoint not found"})
+
+    def log_message(self, fmt, *args):
+        pass  # Suppress noisy access logs; use structured logging in production
 
 
-def start_server(port=PORT):
+def start_server(port: int = PORT):
     server = HTTPServer(("0.0.0.0", port), RuleEngineHandler)
-    print(f"[*] JSON Rule Engine Server running at http://127.0.0.1:{port}")
-    print(f"    Endpoints: GET /api/rules | POST /api/evaluate | POST /api/rules")
+    print(f"[*] JSON Rule Engine Server  →  http://127.0.0.1:{port}")
+    print(f"    API: GET /api/rules | POST /api/rules | POST /api/evaluate")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nShutting down server...")
+        print("\nGraceful shutdown.")
         server.server_close()
-
-
-if __name__ == "__main__":
-    start_server()

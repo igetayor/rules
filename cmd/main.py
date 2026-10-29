@@ -1,16 +1,23 @@
 """
-CLI demonstration harness and server bootstrap for the Ige JSON Rule Engine.
+Entrypoint for the JSON Rule Engine.
+
+Usage:
+  python -m cmd.main              # Run CLI demo
+  python -m cmd.main --serve      # Launch web server on port 8093
+  python -m cmd.main --serve -p 9000
 """
 
 import sys
 import argparse
-from engine import JsonRuleEngine, Rule, Condition, Operator
+import asyncio
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
 def run_cli_demo():
+    from backend.core.engine import JsonRuleEngine, Rule, Condition, Operator
+
     print("=" * 65)
     print("[*] Ige JSON Rule Engine -- Declarative Policy Evaluation")
     print("=" * 65)
@@ -73,18 +80,17 @@ def run_cli_demo():
         print(f"      Explanation: {r['explanation']}")
 
     print("\n[+] JSON Rule Engine demonstrated sub-millisecond evaluation with full audit trails.")
-    print("    To launch the interactive visualizer, run: py main.py --serve")
+    print("    To launch the interactive visualizer, run: python -m cmd.main --serve")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Ige JSON Rule Engine")
     parser.add_argument("--serve", "-s", action="store_true", help="Launch interactive web server on port 8093")
     parser.add_argument("--port", "-p", type=int, default=8093, help="Port to listen on")
-
     args = parser.parse_args()
 
     if args.serve:
-        from server import start_server
+        from backend.api.server import start_server
         start_server(args.port)
     else:
         run_cli_demo()
